@@ -7,6 +7,7 @@ function Shooter(params) {
 
   let isShooterExist = false;
   let isMousePress = false;
+  let isAnimate = false;
   let currentShooterPosition = { shootX: null, shootY: null };
 
   //   myCanvas.addEventListener("click", (evt) => {
@@ -14,25 +15,32 @@ function Shooter(params) {
   //   });
 
   myCanvas.addEventListener("mousedown", (evt) => {
+    isAnimate = true;
     isMousePress = true;
     drewShooter(evt);
   });
 
   myCanvas.addEventListener("mousemove", (evt) => {
-    // let pos = getMousePos(myCanvas, evt);
-    if (isShooterExist && isMousePress) shootBullets(evt.clientX, evt.clientY);
+    let pos = getMousePos(myCanvas, evt);
+    if (isShooterExist && isMousePress) {
+      shootBullets(pos.x, pos.y);
+    }
   });
 
-  myCanvas.addEventListener("mouseup", () => (isMousePress = false));
+  myCanvas.addEventListener("mouseup", (evt) => {
+    isMousePress = false;
+    isAnimate = false;
+    // cancelAnimationFrame(animateId);
+  });
   myCanvas.addEventListener("mouseout", () => (isMousePress = false));
 
   function drewShooter(evt) {
-    // let pos = getMousePos(myCanvas, evt);
-    let isDotInside = calculationVolume(evt.clientX, evt.clientY, currentShooterPosition.shootX, currentShooterPosition.shootY, 10);
+    let pos = getMousePos(myCanvas, evt);
+    let isDotInside = calculationVolume(pos.x, pos.y, currentShooterPosition.shootX, currentShooterPosition.shootY, 10);
     if (!isShooterExist) {
       isShooterExist = true;
-      currentShooterPosition = { shootX: evt.clientX, shootY: evt.clientY };
-      drew(evt.clientX, evt.clientY, 10, params.color);
+      currentShooterPosition = { shootX: pos.x, shootY: pos.y };
+      drew(pos.x, pos.y, 10, params.color);
     } else if (isShooterExist && isDotInside) {
       ctx.clearRect(currentShooterPosition.shootX - 10, currentShooterPosition.shootY - 10, currentShooterPosition.shootX + 10, currentShooterPosition.shootY + 10);
       isShooterExist = false;
@@ -60,29 +68,38 @@ function Shooter(params) {
     }
   }
   let bulletsArr = [];
-
+  let animateId;
   function animate() {
+    // if (isAnimate) {
+    // animateId = requestAnimationFrame(animate);
     requestAnimationFrame(animate);
+
     ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
     drew(currentShooterPosition.shootX, currentShooterPosition.shootY, 10, params.color);
     bulletsArr.forEach((bullet, i) => {
       bullet.update();
-      if (bullet.x > myCanvas.width || bullet.y > myCanvas.height) bulletsArr.splice(i, 1);
-      console.log("aaaaa: bulletsArr,", bulletsArr);
+      //   if (bullet.x > myCanvas.width || bullet.y > myCanvas.height) bulletsArr.splice(i, 1);
+      //   if (bullet.x > myCanvas.width || bullet.y > myCanvas.height) {
+      //   setTimeout(() => {
+      //     bulletsArr.splice(i, 1);
+      //   }, 0);
+      //   }
+      //   console.log("aaaaa: bulletsArr,", bulletsArr);
     });
+    // }
   }
-  spliceOutDot = () => {};
 
   const shootBullets = (dotX, totY) => {
-    console.log("dotX : ", dotX, ", dotX: ", totY);
     const angle = Math.atan2(totY - currentShooterPosition.shootY, dotX - currentShooterPosition.shootX);
-    const velocity = { x: Math.cos(angle), y: Math.sin(angle) };
+    const velocity = { x: Math.cos(angle) * 2, y: Math.sin(angle) * 2 };
     const position = { x: currentShooterPosition.shootX, y: currentShooterPosition.shootY };
     bulletsArr.push(new Bullet(position, 5, params.bulletColor, velocity));
     reduceBullets(position, velocity);
-    console.log("bulletsArr: ", bulletsArr);
+    // console.log("bulletsArr: ", bulletsArr);
+
     animate();
   };
+
   const drew = (posX, posY, r, color) => {
     ctx.beginPath();
     ctx.arc(posX, posY, r, 0, 2 * Math.PI);
@@ -100,16 +117,18 @@ function Shooter(params) {
   };
 
   const reduceBullets = (position, velocity) => {
-    // setInterval(function () {
-    //   if (bulletsArr.length > 10) bulletsArr.shift();
-    //   console.log("aa: ", bulletsArr);
-    // }, 3000);
-    setTimeout(() => {
+    setInterval(function () {
       if (bulletsArr.length > 0) {
         bulletsArr.shift();
-      } else if (position.x > myCanvas.width || position.y > myCanvas.height) bulletsArr.splice(i, 1);
-      else bulletsArr.push(new Bullet(position, 5, params.bulletColor, velocity));
-    }, 1000 / 24);
+      }
+      //   else bulletsArr.push(new Bullet(position, 5, params.bulletColor, velocity));
+    }, 1000);
+    // setTimeout(() => {
+    //   if (bulletsArr.length > 0) {
+    //     bulletsArr.shift();
+    //   } else if (position.x > myCanvas.width || position.y > myCanvas.height) bulletsArr.splice(i, 1);
+    //   //   else bulletsArr.push(new Bullet(position, 5, params.bulletColor, velocity));
+    // }, 1000);
   };
 
   const calculationVolume = (newX, newY, shooterX, shooterY, radius) => {
