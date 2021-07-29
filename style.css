@@ -1,0 +1,23 @@
+.DV1,
+.DV2 {
+  border: 1px solid black;
+  height: 300px;
+  width: 400px;
+}
+
+.DV2 {
+  animation-direction: alternate;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-name: swinger;
+  position: relative;
+}
+
+@keyframes swinger {
+  from {
+    left: 0;
+  }
+  to {
+    left: 100px;
+  }
+}
